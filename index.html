@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Train</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+    <script src="https://momentjs.com/downloads/moment.min.js"></script>
+</head>
+<body>
+<section id="subject" class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+    <div class="container jumbotron text-center">
+            <h1>Train Ride</h1>
+            <p>Choose Choose.</p>
+    </div>
+</section>
+    
+<section class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12  container">
+<table class="table">
+  <thead class="thead-inverse">
+    <tr>
+      <th class="text-center">Train Name</th>
+      <th class="text-center">Destination</th>
+      <th class="text-center">Frequency (min)</th>
+      <th class="text-center">Next Arrival</th>
+      <th class="text-center">Minutes Away</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</section>
+
+    
+<section id="input_data_area" class="container col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+    <div class="row col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+        <div class="m2 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+            <span class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-uppercase"> Train Name</span><br>
+            <input id="train_names" class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+        </div >
+        <div class="m2 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+            <span class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-uppercase">Destination</span><br>
+            <input id="destinations" class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+        </div>
+        <div class="m2 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+            <span class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-uppercase">Train Time (HH:mm - military time)</span><br>
+            <input id="train_time" class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+        </div>
+        <div class="m2 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+            <span class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-uppercase">Frequency (min)</span><br>
+            <input id="frequencys" class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+        </div><br>
+        <button id="button" type="button" class="m2 btn btn-primary">Submit</button>
+    </div>
+    </section>
+    
+
+<script src="https://www.gstatic.com/firebasejs/4.4.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyDBsNPAtqd7fx7WQpS-onEunFcqV1JuTTM",
+    authDomain: "train-7b8bd.firebaseapp.com",
+    databaseURL: "https://train-7b8bd.firebaseio.com",
+    projectId: "train-7b8bd",
+    storageBucket: "",
+    messagingSenderId: "769885606063"
+  };
+  firebase.initializeApp(config);
+  var database = firebase.database();
+    
+/*    set var for data*/
+    var train_name = "";
+    var destination = "";
+    var trains_time = 0;
+    var frequency = 0;
+    
+    $("#button").on("click", function(event) {
+      event.preventDefault();
+     /*   give var value and trim extra space*/
+      train_name = $("#train_names").val().trim();
+      destination = $("#destinations").val().trim();
+      trains_time = $("#train_time").val().trim();
+      frequency = $("#frequencys").val().trim();
+        
+       /* push var's value to firebase/ file train_test*/
+      database.ref('/train_test').push({
+        train_name: train_name,
+        destination: destination,
+        trains_time: trains_time,
+        frequency: frequency
+      });
+        $("input").val("");
+    });
+
+
+     database.ref('/train_test').on("child_added", function(snapshot) {
+     
+        var ss = snapshot.val();
+        var start = moment().format("HHmm");
+        var end = moment(ss.trains_time, "hhmm").format("HHmm"); 
+         
+       /*grab data from firebase*/
+        var name_dis = ss.train_name;
+        var destination_dis = ss.destination;
+        var frequency_dis = ss.frequency;
+        var next_arrival_dis = moment(ss.trains_time, "hhmm").format("HH:mm"); 
+        var min_away_dis = end-start;
+        
+        
+         
+       /*Set var for new tr and td*/     
+        var newTr = $("<tr>");
+        var td0 = $("<td>" + name_dis + "</td>").attr("class", "name_display");
+        var td1 = $("<td>" + destination_dis + "</td>").attr("class", "destination_display");
+        var td2 = $("<td>" + frequency_dis + "</td>").attr("class", "frequency_display");
+        var td3 = $("<td>" + next_arrival_dis + "</td>").attr("class", "next_arrival_display");
+        var td4 = $("<td>" + min_away_dis + "</td>").attr("class", "min_away_display");
+         
+        /*attach td to tr*/
+        newTr.append(td0);
+        newTr.append(td1);
+        newTr.append(td2);
+        newTr.append(td3);
+        newTr.append(td4);
+       
+        /*display on DOM*/
+       $("tbody").append(newTr);
+         
+    }, function(errorObject) {
+      console.log("Errors handled: " + errorObject.code);
+    });
+  </script>
+
+</body>
+</html>
+
+
+
